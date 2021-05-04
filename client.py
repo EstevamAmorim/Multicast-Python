@@ -16,9 +16,9 @@ mreq = struct.pack('4sl', socket.inet_aton(MCAST_GRP), socket.INADDR_ANY)
 sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
 while true
-    MESSAGE = input('Type the arithmetic expression:')
+    MESSAGE = input('Type the arithmetic expression: \n')
     sock.sendto(MESSAGE, (MCAST_GRP, MCAST_PORT))
-    print(sock.recv(128))
+    print('Resposta: {} \n'.format(sock.recv(128)))
     
 
 
