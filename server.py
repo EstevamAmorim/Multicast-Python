@@ -24,7 +24,7 @@ SVRS_STATE[NUMBER] = ACTIVE
 
 def servers_communication():
   while True:
-    sock_servers_send.sendto(MESSAGE, (MCAST_GRP_SEVERS, MCAST_PORT_SERVERS))
+    sock_servers_send.sendto(MESSAGE.encode(), (MCAST_GRP_SEVERS, MCAST_PORT_SERVERS))
 
     for i in range(NUMBER_OF_SERVERS:
       if SVRS_STATE[i] == ACTIVE or SVRS_STATE[i] < NOT_CONFIRMED:
@@ -43,20 +43,20 @@ def servers_state():
 def client_communication():
   flag = True
   while True:
-    data, address = sock_client.recvfrom(512)
-    exp = data.decode
-
+    exp, address = sock_client.recvfrom(512)
+    
     for i in range(NUMBER_OF_SERVERS)
       if i < NUMBER and SVRS_STATE[i] <= NOT_CONFIRMED
         flag = False
 
     if flag:
       try:
-        result = eval(exp);
+        result = eval(exp)
       except:
         result = 'Invalid Expression!'
 
-      sock_servers.sendto(str.encode(result), address)
+      print(result)
+      sock_client.sendto(str(result).encode(), address)
 
 # --------------------------- SERVER-SERVER SOCKET SET UP - SEND -----------------------------------
 
@@ -69,7 +69,7 @@ sock_servers_send.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, MULTICA
 sock_servers_rcv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 sock_servers_rcv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-sock_servers_rcv.bind((MCAST_GRP, MCAST_PORT_SERVERS_RCV))
+sock_servers_rcv.bind((MCAST_GRP_SEVERS, MCAST_PORT_SERVERS_RCV))
 
 mreq = struct.pack('4sl', socket.inet_aton(MCAST_GRP_SEVERS), socket.INADDR_ANY)
 sock_servers_rcv.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
@@ -81,7 +81,7 @@ sock_client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UD
 sock_client.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, MULTICAST_TTL_CLIENT)
 sock_client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-sock_client.bind((MCAST_GRP, MCAST_PORT_CLIENT))
+sock_client.bind((MCAST_GRP_CLIENT, MCAST_PORT_CLIENT))
 
 mreq = struct.pack('4sl', socket.inet_aton(MCAST_GRP_CLIENT), socket.INADDR_ANY)
 sock_client.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)

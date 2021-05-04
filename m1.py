@@ -10,6 +10,6 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, MULTICAST_TTL)
 
 while True:
-    msg = input('Type the arithmetic expression: \n')
-    sock.sendto(msg.encode(), (MCAST_GRP, MCAST_PORT))
+    MESSAGE = input('Type the arithmetic expression: \n')
+    sock.sendto(MESSAGE.encode(), (MCAST_GRP, MCAST_PORT))
     print('Resposta: {} \n'.format(sock.recv(128).decode()))
