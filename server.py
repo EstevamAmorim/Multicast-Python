@@ -1,5 +1,7 @@
 import socket
 import struct
+import time
+import threading
 
 NUMBER = 1
 NUMBER_OF_SERVERS = 3
@@ -24,15 +26,16 @@ SVRS_STATE[NUMBER] = ACTIVE
 
 def servers_communication():
   while True:
-    sock_servers_send.sendto(MESSAGE.encode(), (MCAST_GRP_SEVERS, MCAST_PORT_SERVERS))
+    sock_servers_send.sendto(MESSAGE.encode(), (MCAST_GRP_SEVERS, MCAST_PORT_SERVERS_SEND))
 
-    for i in range(NUMBER_OF_SERVERS:
+    for i in range(NUMBER_OF_SERVERS):
       if SVRS_STATE[i] == ACTIVE or SVRS_STATE[i] < NOT_CONFIRMED:
         SVRS_STATE[i]+=1
       elif SVRS_STATE[i] == NOT_CONFIRMED:
         SVRS_STATE = DISABLED
-      
-    #pausa de tempo assincrona e constante
+    
+    print(SVRS_STATE)
+    time.sleep(1)
 
 def servers_state():
   while True:
@@ -45,8 +48,8 @@ def client_communication():
   while True:
     exp, address = sock_client.recvfrom(512)
     
-    for i in range(NUMBER_OF_SERVERS)
-      if i < NUMBER and SVRS_STATE[i] <= NOT_CONFIRMED
+    for i in range(NUMBER_OF_SERVERS):
+      if i < NUMBER and SVRS_STATE[i] <= NOT_CONFIRMED:
         flag = False
 
     if flag:
@@ -88,5 +91,14 @@ sock_client.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
 # --------------------------------------------------------------------------------------------------
 #-------------------------------------------MAIN----------------------------------------------------
+
+a_thread = threading.Thread(target = servers_communication)
+a_thread.start()
+
+b_thread = threading.Thread(target = servers_state)
+b_thread.start()
+
+c_thread = threading.Thread(target = client_communication)
+c_thread.start()
 
 # --------------------------------------------------------------------------------------------------
