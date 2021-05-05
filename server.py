@@ -1,9 +1,9 @@
 import socket
 import struct
 import time
-import threading
+import sys
 
-NUMBER = 1
+NUMBER = int(sys.argv[1])
 NUMBER_OF_SERVERS = 3
 MCAST_GRP_CLIENT = '224.1.1.1'
 MCAST_GRP_SEVERS = '224.1.1.2'
@@ -29,12 +29,13 @@ def servers_communication():
     sock_servers_send.sendto(MESSAGE.encode(), (MCAST_GRP_SEVERS, MCAST_PORT_SERVERS_SEND))
 
     for i in range(NUMBER_OF_SERVERS):
-      if SVRS_STATE[i] == ACTIVE or SVRS_STATE[i] < NOT_CONFIRMED:
-        SVRS_STATE[i]+=1
-      elif SVRS_STATE[i] == NOT_CONFIRMED:
-        SVRS_STATE = DISABLED
+      if i != NUMBER
+        if SVRS_STATE[i] == ACTIVE or SVRS_STATE[i] < NOT_CONFIRMED:
+          SVRS_STATE[i]+=1
+        elif SVRS_STATE[i] == NOT_CONFIRMED:
+          SVRS_STATE = DISABLED
     
-    print(SVRS_STATE)
+    print('Status of Others Severs: {}'.format(SVRS_STATE))
     time.sleep(1)
 
 def servers_state():
@@ -91,14 +92,4 @@ sock_client.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
 # --------------------------------------------------------------------------------------------------
 #-------------------------------------------MAIN----------------------------------------------------
-
-a_thread = threading.Thread(target = servers_communication)
-a_thread.start()
-
-b_thread = threading.Thread(target = servers_state)
-b_thread.start()
-
-c_thread = threading.Thread(target = client_communication)
-c_thread.start()
-
 # --------------------------------------------------------------------------------------------------
