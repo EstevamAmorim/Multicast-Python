@@ -28,8 +28,10 @@ def servers_communication():
   while True:
     sock_servers_send.sendto(MESSAGE.encode(), (MCAST_GRP_SEVERS, MCAST_PORT_SERVERS_SEND))
 
+    global SVRS_STATE
+
     for i in range(NUMBER_OF_SERVERS):
-      if i != NUMBER
+      if i != NUMBER:
         if SVRS_STATE[i] == ACTIVE or SVRS_STATE[i] < NOT_CONFIRMED:
           SVRS_STATE[i]+=1
         elif SVRS_STATE[i] == NOT_CONFIRMED:
