@@ -25,18 +25,22 @@ MESSAGE = str(NUMBER)
 SVRS_STATE = [DISABLED]*NUMBER_OF_SERVERS
 SVRS_STATE[NUMBER] = ACTIVE
 
+srvs_state_lock = threading.Lock()
+
 def servers_communication():
   print('Started communicating state to other servers.')
   while True:
     global SVRS_STATE
 
     sock_servers_send.sendto(MESSAGE.encode(), (MCAST_GRP_SEVERS, MCAST_PORT_SERVERS_RCV))
-    for i in range(NUMBER_OF_SERVERS):
-      if i != NUMBER:
-        if SVRS_STATE[i] < DISABLED:
-          SVRS_STATE[i]+=1
-      else:
-        SVRS_STATE[NUMBER] = ACTIVE
+
+    with srvs_state_lock:
+      for i in range(NUMBER_OF_SERVERS):
+        if i != NUMBER:
+          if SVRS_STATE[i] < DISABLED:
+            SVRS_STATE[i]+=1
+        else:
+          SVRS_STATE[NUMBER] = ACTIVE
     
     print('Status of Others Severs: {}'.format(SVRS_STATE))
     time.sleep(1)
@@ -46,8 +50,10 @@ def servers_state():
   while True:
     data = sock_servers_rcv.recv(512) 
     n = int(data.decode())
-    SVRS_STATE[n] = ACTIVE
-    print('Status of Others Severs: {}'.format(SVRS_STATE))
+    if n != NUMBER:
+      with srvs_state_lock:
+        SVRS_STATE[n] = ACTIVE
+        print('Status of Others Severs: {}'.format(SVRS_STATE))
 
 def client_communication():
   flag = True
