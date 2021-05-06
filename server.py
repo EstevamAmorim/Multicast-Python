@@ -5,7 +5,7 @@ import sys
 import threading
 
 NUMBER = int(sys.argv[1])
-MAX_NUMBER_OF_SERVERS = 10
+MAX_NUMBER_OF_SERVERS = 5
 
 MCAST_GRP_CLIENT = '224.1.1.1'
 MCAST_GRP_SEVERS = '224.1.1.2'
@@ -17,13 +17,11 @@ MULTICAST_TTL_SERVERS = MAX_NUMBER_OF_SERVERS*2
 MULTICAST_TTL_CLIENT = 2
 
 ACTIVE = 4
-NOT_CONFIRMED = 3
-DISABLED = 0
+NOT_CONFIRMED = 2
+DISCONNECTED = 0
 
 MESSAGE = str(NUMBER)
-
-SVRS_STATE = [DISABLED]*MAX_NUMBER_OF_SERVERS
-# SVRS_STATE[NUMBER] = ACTIVE
+SVRS_STATE = [DISCONNECTED]*MAX_NUMBER_OF_SERVERS
 
 srvs_state_lock = threading.Lock()
 
@@ -36,10 +34,13 @@ def servers_communication():
 
     with srvs_state_lock:
       for i in range(MAX_NUMBER_OF_SERVERS):
-        if SVRS_STATE[i] > DISABLED:
+        if SVRS_STATE[i] > DISCONNECTED:
             SVRS_STATE[i]-=1
-    
-      print('Status of Others Severs: {}'.format(SVRS_STATE))
+            if SVRS_STATE[i] < NOT_CONFIRMED:
+              if (SVRS_STATE[i] == DISCONNECTED):
+                print('Server {} is Disconnected'.format(i))
+              else:
+                print('Server {} is Unresponsive'.format(i))
 
     time.sleep(1)
 
@@ -49,8 +50,10 @@ def servers_state():
     data = sock_servers_rcv.recv(512) 
     n = int(data.decode())
     with srvs_state_lock:
+      if (SVRS_STATE[n] < NOT_CONFIRMED):
+        print('Server {} is Active'.format(n))
       SVRS_STATE[n] = ACTIVE
-      print('Status of Others Severs: {}'.format(SVRS_STATE))
+      
 
 def client_communication():
   while True:
@@ -61,15 +64,18 @@ def client_communication():
     with srvs_state_lock:
       for i in range(NUMBER):
         if SVRS_STATE[i] >= NOT_CONFIRMED:
+          print('Client message received, expecting server {} will answer.'.format(i))
           shouldRespond = False
+          break
 
     if shouldRespond:
+      print('Client message received, evaluating expression {}'.format(exp))
       try:
         result = eval(exp)
       except:
         result = 'Invalid Expression!'
 
-      print(result)
+      print('Sending result: {}'.format(result))
       sock_client.sendto(str(result).encode(), address)
 
 # --------------------------- SERVER-SERVER SOCKET SET UP - SEND -----------------------------------
