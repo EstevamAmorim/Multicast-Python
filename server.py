@@ -13,8 +13,7 @@ MCAST_GRP_SEVERS = '224.1.1.2'
 MCAST_PORT_CLIENT = 5007
 MCAST_PORT_SERVERS = 5008
 
-MULTICAST_TTL_SERVERS = MAX_NUMBER_OF_SERVERS*2
-MULTICAST_TTL_CLIENT = 2
+MULTICAST_TTL = 2
 
 ACTIVE = 4
 NOT_CONFIRMED = 2
@@ -26,7 +25,7 @@ SVRS_STATE = [DISCONNECTED]*MAX_NUMBER_OF_SERVERS
 srvs_state_lock = threading.Lock()
 
 def servers_communication():
-  print('Started communicating state to other servers.')
+  print('Server {number} STARTED COMMUNICATING state in the Multicast Group {group}, Port {port}'.format(number = NUMBER, group = MCAST_GRP_SEVERS, port = MCAST_PORT_SERVERS))
   while True:
     global SVRS_STATE
 
@@ -45,7 +44,7 @@ def servers_communication():
     time.sleep(1)
 
 def servers_state():
-  print('Started listening to other servers.')
+  print('Server {number} STARTED LISTENING to state confirmations in the Multicast Group {group}, Port {port}'.format(number = NUMBER, group = MCAST_GRP_SEVERS, port = MCAST_PORT_SERVERS))
   while True:
     data = sock_servers_rcv.recv(512) 
     n = int(data.decode())
@@ -64,7 +63,7 @@ def client_communication():
     with srvs_state_lock:
       for i in range(NUMBER):
         if SVRS_STATE[i] >= NOT_CONFIRMED:
-          print('Client message received, expecting server {} will answer.'.format(i))
+          print('Client message received, expecting server {} will answer'.format(i))
           shouldRespond = False
           break
 
@@ -81,7 +80,7 @@ def client_communication():
 # --------------------------- SERVER-SERVER SOCKET SET UP - SEND -----------------------------------
 
 sock_servers_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-sock_servers_send.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, MULTICAST_TTL_SERVERS)
+sock_servers_send.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, MULTICAST_TTL)
 
 # --------------------------------------------------------------------------------------------------
 # --------------------------- SERVER-SERVER SOCKET SET UP - RECEIVE --------------------------------
@@ -98,7 +97,7 @@ sock_servers_rcv.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 # --------------------------- SERVER-CLIENT SOCKET SET UP - SEND AND RECEIVE -----------------------
 
 sock_client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-sock_client.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, MULTICAST_TTL_CLIENT)
+sock_client.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, MULTICAST_TTL)
 sock_client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
 sock_client.bind((MCAST_GRP_CLIENT, MCAST_PORT_CLIENT))
