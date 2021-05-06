@@ -23,7 +23,7 @@ DISABLED = 5
 MESSAGE = str(NUMBER)
 
 SVRS_STATE = [DISABLED]*NUMBER_OF_SERVERS
-SVRS_STATE[NUMBER] = ACTIVE
+# SVRS_STATE[NUMBER] = ACTIVE
 
 srvs_state_lock = threading.Lock()
 
@@ -36,11 +36,8 @@ def servers_communication():
 
     with srvs_state_lock:
       for i in range(NUMBER_OF_SERVERS):
-        if i != NUMBER:
-          if SVRS_STATE[i] < DISABLED:
+        if SVRS_STATE[i] < DISABLED:
             SVRS_STATE[i]+=1
-        else:
-          SVRS_STATE[NUMBER] = ACTIVE
     
       print('Status of Others Severs: {}'.format(SVRS_STATE))
 
@@ -51,10 +48,9 @@ def servers_state():
   while True:
     data = sock_servers_rcv.recv(512) 
     n = int(data.decode())
-    if n != NUMBER:
-      with srvs_state_lock:
-        SVRS_STATE[n] = ACTIVE
-        print('Status of Others Severs: {}'.format(SVRS_STATE))
+    with srvs_state_lock:
+      SVRS_STATE[n] = ACTIVE
+      print('Status of Others Severs: {}'.format(SVRS_STATE))
 
 def client_communication():
   while True:
