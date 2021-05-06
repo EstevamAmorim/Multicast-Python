@@ -12,4 +12,6 @@ sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, MULTICAST_TTL)
 while True:
     msg = input('Type the arithmetic expression: \n')
     sock.sendto(msg.encode(), (MCAST_GRP, MCAST_PORT))
-    print('Resposta: {} \n'.format(sock.recv(128).decode()))
+
+    data, address = sock.recvfrom(128)
+    print('Resposta: {fresp}, received from {fserver}'.format(fresp = data.decode(), fserver = address))

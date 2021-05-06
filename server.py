@@ -35,23 +35,29 @@ def servers_communication():
       for i in range(MAX_NUMBER_OF_SERVERS):
         if SVRS_STATE[i] > DISCONNECTED:
             SVRS_STATE[i]-=1
-            if SVRS_STATE[i] < NOT_CONFIRMED:
-              if (SVRS_STATE[i] == DISCONNECTED):
-                print('Server {} is Disconnected'.format(i))
-              else:
-                print('Server {} is Unresponsive'.format(i))
+            if (SVRS_STATE[i] == DISCONNECTED):
+              print('Server {} is Disconnected'.format(i))
+            elif SVRS_STATE[i] < NOT_CONFIRMED:
+              print('Server {} is Unresponsive'.format(i))
 
     time.sleep(1)
 
 def servers_state():
   print('Server {number} STARTED LISTENING to state confirmations in the Multicast Group {group}, Port {port}'.format(number = NUMBER, group = MCAST_GRP_SEVERS, port = MCAST_PORT_SERVERS))
   while True:
-    data = sock_servers_rcv.recv(512) 
-    n = int(data.decode())
-    with srvs_state_lock:
-      if (SVRS_STATE[n] < NOT_CONFIRMED):
-        print('Server {} is Active'.format(n))
-      SVRS_STATE[n] = ACTIVE
+    data, address = sock_servers_rcv.recvfrom(512) 
+    n = -1
+
+    try:
+        n = int(data.decode())
+    except:
+      print('Received invalid data {fdata} from server {fserver}'.format(fdata = data, fserver = address))
+    
+    if (n >= 0 and n < MAX_NUMBER_OF_SERVERS):
+      with srvs_state_lock:
+        if (SVRS_STATE[n] < NOT_CONFIRMED):
+          print('Server {} is Active'.format(n))
+        SVRS_STATE[n] = ACTIVE
       
 
 def client_communication():
