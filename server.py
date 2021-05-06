@@ -5,24 +5,24 @@ import sys
 import threading
 
 NUMBER = int(sys.argv[1])
-NUMBER_OF_SERVERS = 3
+MAX_NUMBER_OF_SERVERS = 10
+
 MCAST_GRP_CLIENT = '224.1.1.1'
 MCAST_GRP_SEVERS = '224.1.1.2'
 
 MCAST_PORT_CLIENT = 5007
-MCAST_PORT_SERVERS_SEND = 5008
-MCAST_PORT_SERVERS_RCV = 5009
+MCAST_PORT_SERVERS = 5008
 
-MULTICAST_TTL_SERVERS = NUMBER_OF_SERVERS*2
+MULTICAST_TTL_SERVERS = MAX_NUMBER_OF_SERVERS*2
 MULTICAST_TTL_CLIENT = 2
 
-ACTIVE = 1
-NOT_CONFIRMED = 4
-DISABLED = 5
+ACTIVE = 4
+NOT_CONFIRMED = 3
+DISABLED = 0
 
 MESSAGE = str(NUMBER)
 
-SVRS_STATE = [DISABLED]*NUMBER_OF_SERVERS
+SVRS_STATE = [DISABLED]*MAX_NUMBER_OF_SERVERS
 # SVRS_STATE[NUMBER] = ACTIVE
 
 srvs_state_lock = threading.Lock()
@@ -32,12 +32,12 @@ def servers_communication():
   while True:
     global SVRS_STATE
 
-    sock_servers_send.sendto(MESSAGE.encode(), (MCAST_GRP_SEVERS, MCAST_PORT_SERVERS_RCV))
+    sock_servers_send.sendto(MESSAGE.encode(), (MCAST_GRP_SEVERS, MCAST_PORT_SERVERS))
 
     with srvs_state_lock:
-      for i in range(NUMBER_OF_SERVERS):
-        if SVRS_STATE[i] < DISABLED:
-            SVRS_STATE[i]+=1
+      for i in range(MAX_NUMBER_OF_SERVERS):
+        if SVRS_STATE[i] > DISABLED:
+            SVRS_STATE[i]-=1
     
       print('Status of Others Severs: {}'.format(SVRS_STATE))
 
@@ -60,7 +60,7 @@ def client_communication():
     
     with srvs_state_lock:
       for i in range(NUMBER):
-        if SVRS_STATE[i] <= NOT_CONFIRMED:
+        if SVRS_STATE[i] >= NOT_CONFIRMED:
           shouldRespond = False
 
     if shouldRespond:
@@ -83,7 +83,7 @@ sock_servers_send.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, MULTICA
 sock_servers_rcv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 sock_servers_rcv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-sock_servers_rcv.bind((MCAST_GRP_SEVERS, MCAST_PORT_SERVERS_RCV))
+sock_servers_rcv.bind((MCAST_GRP_SEVERS, MCAST_PORT_SERVERS))
 
 mreq = struct.pack('4sl', socket.inet_aton(MCAST_GRP_SEVERS), socket.INADDR_ANY)
 sock_servers_rcv.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
