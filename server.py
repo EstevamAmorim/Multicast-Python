@@ -2,6 +2,7 @@ import socket
 import struct
 import time
 import sys
+import threading
 
 NUMBER = int(sys.argv[1])
 NUMBER_OF_SERVERS = 3
@@ -25,6 +26,7 @@ SVRS_STATE = [DISABLED]*NUMBER_OF_SERVERS
 SVRS_STATE[NUMBER] = ACTIVE
 
 def servers_communication():
+  print('Started communicating state to other servers.')
   while True:
     global SVRS_STATE
 
@@ -40,10 +42,12 @@ def servers_communication():
     time.sleep(1)
 
 def servers_state():
+  print('Started listening to other servers.')
   while True:
     data = sock_servers_rcv.recv(512) 
     n = int(data.decode())
     SVRS_STATE[n] = ACTIVE
+    print('Status of Others Severs: {}'.format(SVRS_STATE))
 
 def client_communication():
   flag = True
@@ -94,3 +98,9 @@ sock_client.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 # --------------------------------------------------------------------------------------------------
 #-------------------------------------------MAIN----------------------------------------------------
 # --------------------------------------------------------------------------------------------------
+
+threadServerSend = threading.Thread(target=servers_communication)
+threadServerSend.start()
+
+threadServerRcv = threading.Thread(target=servers_state)
+threadServerRcv.start()
