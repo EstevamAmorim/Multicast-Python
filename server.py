@@ -25,7 +25,8 @@ SVRS_STATE = [DISCONNECTED]*MAX_NUMBER_OF_SERVERS
 srvs_state_lock = threading.Lock()
 
 def servers_communication():
-  print('Server {number} STARTED COMMUNICATING state in the Multicast Group {group}, Port {port}'.format(number = NUMBER, group = MCAST_GRP_SEVERS, port = MCAST_PORT_SERVERS))
+  count = 0
+  print('\nServer {number} STARTED COMMUNICATING state in the Multicast Group {group}, Port {port}'.format(number = NUMBER, group = MCAST_GRP_SEVERS, port = MCAST_PORT_SERVERS))
   while True:
     global SVRS_STATE
 
@@ -36,14 +37,29 @@ def servers_communication():
         if SVRS_STATE[i] > DISCONNECTED:
             SVRS_STATE[i]-=1
             if (SVRS_STATE[i] == DISCONNECTED):
-              print('Server {} is Disconnected'.format(i))
+              print('Update: Server {} is Disconnected'.format(i))
             elif SVRS_STATE[i] < NOT_CONFIRMED:
-              print('Server {} is Unresponsive'.format(i))
+              print('Update: Server {} is Unresponsive'.format(i))
+
+    if count == 20:
+      print('------------------------------------------\n')
+      with srvs_state_lock:
+        for i in range(MAX_NUMBER_OF_SERVERS):
+          if SVRS_STATE[i] == DISCONNECTED:
+            print('   Server {} is Disconnected'.format(i))
+          elif SVRS_STATE[i] < NOT_CONFIRMED:
+            print('   Server {} is Unresponsive'.format(i))
+          elif SVRS_STATE[i] <= ACTIVE:
+            print('   Server {} is Active'.format(i))  
+        print('\n------------------------------------------')
+      count = 0
+    else:
+      count+=1
 
     time.sleep(1)
 
 def servers_state():
-  print('Server {number} STARTED LISTENING to state confirmations in the Multicast Group {group}, Port {port}'.format(number = NUMBER, group = MCAST_GRP_SEVERS, port = MCAST_PORT_SERVERS))
+  print('\nServer {number} STARTED LISTENING to state confirmations in the Multicast Group {group}, Port {port}\n'.format(number = NUMBER, group = MCAST_GRP_SEVERS, port = MCAST_PORT_SERVERS))
   while True:
     data, address = sock_servers_rcv.recvfrom(512) 
     n = -1
@@ -56,7 +72,7 @@ def servers_state():
     if (n >= 0 and n < MAX_NUMBER_OF_SERVERS):
       with srvs_state_lock:
         if (SVRS_STATE[n] < NOT_CONFIRMED):
-          print('Server {} is Active'.format(n))
+          print('Update: Server {} is Active'.format(n))
         SVRS_STATE[n] = ACTIVE
       
 
@@ -74,7 +90,7 @@ def client_communication():
           break
 
     if shouldRespond:
-      print('Client message received, evaluating expression {}'.format(exp))
+      print('Client message received, evaluating expression {}'.format(exp.decode()))
       try:
         result = eval(exp)
       except:

@@ -15,7 +15,7 @@ except NameError:
     pass
 
 while True:
-    msg = input('Type the arithmetic expression: \n')
+    msg = input('\nType the arithmetic expression: \n')
     print('Requesting evaluation of expresion: {}'.format(msg))
     sock.sendto(msg.encode(), (MCAST_GRP, MCAST_PORT))
 
