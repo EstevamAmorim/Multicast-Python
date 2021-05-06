@@ -42,7 +42,8 @@ def servers_communication():
         else:
           SVRS_STATE[NUMBER] = ACTIVE
     
-    print('Status of Others Severs: {}'.format(SVRS_STATE))
+      print('Status of Others Severs: {}'.format(SVRS_STATE))
+
     time.sleep(1)
 
 def servers_state():
@@ -56,15 +57,17 @@ def servers_state():
         print('Status of Others Severs: {}'.format(SVRS_STATE))
 
 def client_communication():
-  flag = True
   while True:
     exp, address = sock_client.recvfrom(512)
-    
-    for i in range(NUMBER_OF_SERVERS):
-      if i < NUMBER and SVRS_STATE[i] <= NOT_CONFIRMED:
-        flag = False
 
-    if flag:
+    shouldRespond = True
+    
+    with srvs_state_lock:
+      for i in range(NUMBER):
+        if SVRS_STATE[i] <= NOT_CONFIRMED:
+          shouldRespond = False
+
+    if shouldRespond:
       try:
         result = eval(exp)
       except:
@@ -110,3 +113,6 @@ threadServerSend.start()
 
 threadServerRcv = threading.Thread(target=servers_state)
 threadServerRcv.start()
+
+threadClientRcv = threading.Thread(target=client_communication)
+threadClientRcv.start()
