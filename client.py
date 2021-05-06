@@ -9,9 +9,15 @@ MULTICAST_TTL = 2
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, MULTICAST_TTL)
 
+try:
+    input = raw_input
+except NameError:
+    pass
+
 while True:
     msg = input('Type the arithmetic expression: \n')
+    print('Requesting evaluation of expresion: {}'.format(msg))
     sock.sendto(msg.encode(), (MCAST_GRP, MCAST_PORT))
 
     data, address = sock.recvfrom(128)
-    print('Resposta: {fresp}, received from {fserver}'.format(fresp = data.decode(), fserver = address))
+    print('Answer: {fresp}, received from {fserver}'.format(fresp = data.decode(), fserver = address))
