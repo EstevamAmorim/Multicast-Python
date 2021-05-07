@@ -77,6 +77,7 @@ def servers_state():
       
 
 def client_communication():
+  print('\nServer {number} STARTED LISTENING to client requests in the Multicast Group {group}, Port {port}\n'.format(number = NUMBER, group = MCAST_GRP_CLIENT, port = MCAST_PORT_CLIENT))
   while True:
     exp, address = sock_client.recvfrom(512)
 
